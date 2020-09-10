@@ -21,7 +21,6 @@ from libs.configs import cfgs
 from libs.nets.model import build_model
 
 
-
 def split_input_target(chunk):
     input_text = chunk[:-1]
     target_text = chunk[1:]
@@ -34,22 +33,22 @@ def loss(labels, logits):
 if __name__ == "__main__":
 
     # ------------get gpu and cpu list------------------
-    gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
-    # cpus = tf.config.experimental.list_physical_devices(device_type='CPU')
-    # print(gpus)
-    # print(cpus)
-
-    # ------------------set visible of current program-------------------
-    # method 1 Terminal input
-    # $ export CUDA_VISIBLE_DEVICES = 2, 3
-    # method 1
-    # os.environ['CUDA_VISIBLE_DEVICES'] = "2,3"
-    # method 2
-    tf.config.experimental.set_visible_devices(devices=gpus[0], device_type='GPU')
-    # ----------------------set gpu memory allocation-------------------------
-    # method 1: set memory size dynamic growth
-    for gpu in gpus:
-        tf.config.experimental.set_memory_growth(gpu, True)
+    # gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
+    # # cpus = tf.config.experimental.list_physical_devices(device_type='CPU')
+    # # print(gpus)
+    # # print(cpus)
+    #
+    # # ------------------set visible of current program-------------------
+    # # method 1 Terminal input
+    # # $ export CUDA_VISIBLE_DEVICES = 2, 3
+    # # method 1
+    # # os.environ['CUDA_VISIBLE_DEVICES'] = "2,3"
+    # # method 2
+    # tf.config.experimental.set_visible_devices(devices=gpus[0], device_type='GPU')
+    # # ----------------------set gpu memory allocation-------------------------
+    # # method 1: set memory size dynamic growth
+    # for gpu in gpus:
+    #     tf.config.experimental.set_memory_growth(gpu, True)
     # method 2: set allocate static memory size
     # tf.config.experimental.set_virtual_device_configuration(
     #     device=gpus[0],
