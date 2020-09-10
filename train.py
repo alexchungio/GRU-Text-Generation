@@ -167,7 +167,7 @@ if __name__ == "__main__":
             loss = train_step(input, target)
 
             if (num_step+1) % cfgs.SHOW_TRAIN_INFO_INTE == 0:
-                print('Epoch {} Batch {} Loss {}'.format(epoch+1, num_step, loss))
+                print('Epoch {} Step {} Loss {}'.format(epoch+1, num_step, loss))
 
         with summary_writer.as_default():
             tf.summary.scalar('loss', train_loss.result(), step=epoch)
@@ -177,7 +177,7 @@ if __name__ == "__main__":
         if (epoch+1) % cfgs.SAVE_WEIGHTS_INER == 0:
             model.save_weights(checkpoint_prefix.format(epoch=epoch))
         print('Epoch {} train Loss {}'.format(epoch+1, train_loss.result()))
-        print ('Time taken for 1 epoch {} sec\n'.format(time.time() - start))
+        print ('Time taken for epoch {} sec\n'.format(time.time() - start))
 
         # Reset metrics every epoch
         train_loss.reset_states()

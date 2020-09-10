@@ -15,9 +15,33 @@ import os
 import tensorflow as tf
 
 # ------------------------------------------------
-# VERSION = 'FPN_Res101_20181201'
 VERSION = 'GRU_Text_Generation_20200909'
 NET_NAME = 'gru_text_generation'
+
+
+#------------------------------GPU config
+# ------------get gpu and cpu list------------------
+gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
+# cpus = tf.config.experimental.list_physical_devices(device_type='CPU')
+# print(gpus)
+# print(cpus)
+
+# ------------------set visible of current program-------------------
+# method 1 Terminal input
+# $ export CUDA_VISIBLE_DEVICES = 2, 3
+# method 1
+# os.environ['CUDA_VISIBLE_DEVICES'] = "2,3"
+# method 2
+tf.config.experimental.set_visible_devices(devices=gpus[0], device_type='GPU')
+# ----------------------set gpu memory allocation-------------------------
+# method 1: set memory size dynamic growth
+for gpu in gpus:
+    tf.config.experimental.set_memory_growth(gpu, True)
+# method 2: set allocate static memory size
+# tf.config.experimental.set_virtual_device_configuration(
+#     device=gpus[0],
+#     logical_devices = [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=2048)]
+# )
 
 
 # ---------------------------------------- System_config----------------------------
@@ -25,9 +49,9 @@ ROOT_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 print (20*"++--")
 print (ROOT_PATH)
 GPU_GROUP = "4"
-SHOW_TRAIN_INFO_INTE = 10
+SHOW_TRAIN_INFO_INTE = 100
 SMRY_ITER = 100
-SAVE_WEIGHTS_INTE = 10000
+SAVE_WEIGHTS_INER = 5
 
 SUMMARY_PATH = ROOT_PATH + '/outputs/summary'
 INFERENCE_SAVE_PATH = ROOT_PATH + '/outputs/inference_results'
@@ -37,6 +61,8 @@ INFERENCE_IMAGE_PATH = ROOT_PATH + '/outputs/inference_image'
 
 TRAINED_CKPT = os.path.join(ROOT_PATH, 'outputs/trained_weights')
 EVALUATE_DIR = ROOT_PATH + '/outputs/evaluate_result'
+
+CHAR_INDEX = ROOT_PATH + '/outputs/char_index.json'
 
 #----------------------Data---------------------
 DATASET_PATH = os.path.join(ROOT_PATH, 'data', 'shakespeare.txt')
@@ -56,7 +82,7 @@ NUM_LAYERS = 2
 #-------------------------train config-------------------------------
 EMBEDDING_TRANSFER = False
 LEARNING_RATE = 0.01
-NUM_EPOCH = 10
+NUM_EPOCH = 30
 KEEP_PROB = 0.8
 
 # data
