@@ -129,6 +129,11 @@ if __name__ == "__main__":
     #     example_batch_loss = loss(target_example_batch, example_batch_predictions)
     #     print(example_batch_loss.shape)
 
+    # Define our metrics
+    train_loss = tf.keras.metrics.Mean('train_loss', dtype=tf.float32)
+    train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy('train_accuracy')
+
+    summary_writer = tf.summary.create_file_writer(cfgs.SUMMARY_PATH)
 
     optimizer = tf.keras.optimizers.Adam()
 
@@ -138,8 +143,10 @@ if __name__ == "__main__":
             predictions = model(input)
             loss = tf.reduce_mean(tf.keras.losses.sparse_categorical_crossentropy(
                 target, predictions, from_logits=True))
-            grads = tape.gradient(loss, model.trainable_variables)
-            optimizer.apply_gradients(zip(grads, model.trainable_variables))
+        grads = tape.gradient(loss, model.trainable_variables)
+        optimizer.apply_gradients(zip(grads, model.trainable_variables))
+        train_loss(loss)
+
         return loss
 
     # name of checkpoint files
@@ -159,14 +166,22 @@ if __name__ == "__main__":
         for num_step, (input, target) in enumerate(dataset):
             loss = train_step(input, target)
 
-            if (num_step+1) % cfgs.SHOW_TRAIN_INFO_INTE:
+            if (num_step+1) % cfgs.SHOW_TRAIN_INFO_INTE == 0:
                 print('Epoch {} Batch {} Loss {}'.format(epoch+1, num_step, loss))
 
+        with summary_writer.as_default():
+            tf.summary.scalar('loss', train_loss.result(), step=epoch)
+            # tf.summary.scalar('accuracy', train_accuracy.result(), step=epoch)
+
         # save checkpoint
-        if (epoch+1) % cfgs.SAVE_WEIGHTS_INER:
+        if (epoch+1) % cfgs.SAVE_WEIGHTS_INER == 0:
             model.save_weights(checkpoint_prefix.format(epoch=epoch))
-        print('Epoch {} Loss {}'.format(epoch+1, loss))
+        print('Epoch {} train Loss {}'.format(epoch+1, train_loss.result()))
         print ('Time taken for 1 epoch {} sec\n'.format(time.time() - start))
+
+        # Reset metrics every epoch
+        train_loss.reset_states()
+        train_accuracy.reset_states()
 
     model.save_weights(checkpoint_prefix.format(epoch=cfgs.NUM_EPOCH))
 
