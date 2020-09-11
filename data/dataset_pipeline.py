@@ -41,9 +41,9 @@ def split_input_target(chunk):
     return input_text, target_text
 
 
-def load_sparse_data():
+def load_parse_data(path):
     # -----------------------download dataset------------------------------------
-    file_path = tf.keras.utils.get_file(cfgs.DATASET_PATH,
+    file_path = tf.keras.utils.get_file(path,
                                         origin='https://storage.googleapis.com/download.tensorflow.org/data/shakespeare.txt')
 
     # ----------------------read and decode data------------------------------------
@@ -64,7 +64,7 @@ def load_sparse_data():
 
 
 if __name__ == "__main__":
-    text, vocab, char_index, index_char = load_sparse_data()
+    text, vocab, char_index, index_char = load_parse_data(cfgs.DATASET_PATH)
 
     examples_per_epoch = len(text)
 
