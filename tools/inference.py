@@ -16,73 +16,70 @@ import tensorflow as tf
 import json
 
 from libs.configs import cfgs
-from libs.nets.model import build_model
+from libs.nets.model import GRU
 
 
+def inference(start_string, temperature=1.0, num_generate=1000):
+    """
 
-def inference(temperature=1.0):
+    :param start_string: Low temperatures results in more predictable text.
+                         Higher temperatures results in more surprising text.
+                         Experiment to find the best setting.
+    :param temperature:
+    :param num_generate: Number of characters to generate
+    :return:
+    """
+
     with open(cfgs.CHAR_INDEX, 'r') as f:
         char_index = json.loads(f.read())
 
     index_char = np.array(list(char_index.keys()))
 
     # embedding dimension
-    embedding_dim = 256
-    # rnn units
-    num_units = 1024
 
-    model = build_model(vocab_size=65, embedding_dim=embedding_dim, num_units=num_units, batch_size=1)
-    latest_checkpoint = tf.train.latest_checkpoint(cfgs.TRAINED_CKPT)
-
-    model.load_weights(latest_checkpoint)
-
-    model.build(tf.TensorShape([1, None]))
-
-    model.summary()
-
-    new_text = generate_text(model, start_string=u"ROMEO: ", char_index=char_index, index_char=index_char,
-                             temperature=temperature)
-
-    return new_text
-
-def generate_text(model, start_string, char_index, index_char, temperature=1.0):
-    # Evaluation step (generating text using the learned model)
-    # Low temperatures results in more predictable text.
-    # Higher temperatures results in more surprising text.
-    # Experiment to find the best setting.
-    # Number of characters to generate
-    num_generate = 1000
+    latest_ckpt = tf.train.latest_checkpoint(cfgs.TRAINED_CKPT)
+    model = GRU(vocab_size=len(index_char), embedding_dim=cfgs.EMBEDDING_DIM, num_units=cfgs.NUM_UNITS, batch_size=1)
 
     # Converting our start string to numbers (vectorizing)
     input_eval = [char_index[s] for s in start_string]
-    input_eval = tf.expand_dims(input_eval, 0)
-
+    input_eval = np.expand_dims(input_eval, 0)
     # Empty string to store our results
     text_generated = []
 
-    # Here batch size == 1
-    model.reset_states()
-    for i in range(num_generate):
-        predictions = model(input_eval)
-        # remove the batch dimension
-        predictions = tf.squeeze(predictions, 0)
+    init_op = tf.group(tf.global_variables_initializer(),
+                       tf.local_variables_initializer())
+    with tf.Session() as sess:
+        sess.run(init_op)
+        saver = tf.train.Saver(var_list=tf.trainable_variables())
+        saver.restore(sess, latest_ckpt)
+        print('Successful load weights from {}'.format(latest_ckpt))
+        # Here batch size == 1
+        for i in range(num_generate):
 
-        # using a categorical distribution to predict the character returned by the model
-        predictions = predictions / temperature
-        predicted_id = tf.random.categorical(predictions, num_samples=1)[-1, 0].numpy()
+            # feed_dict = model.fill_feed_dict(input_data=input_eval,
+            #                                  keep_prob=1.0)\
+            feed_dict = {model.input_data: input_eval,
+                         model.keep_prob: 1.0}
+            predictions = sess.run(model.predict, feed_dict=feed_dict)
+            # remove the batch dimension
+            predictions = tf.squeeze(predictions, 0)
 
-        # We pass the predicted character as the next input to the model
-        # along with the previous hidden state
-        input_eval = tf.expand_dims([predicted_id], 0)
+            # using a categorical distribution to predict the character returned by the model
+            predictions = predictions / temperature
+            predicted_id = tf.random.categorical(predictions, num_samples=1)[-1, 0].eval()
 
-        text_generated.append(index_char[predicted_id])
+            # We pass the predicted character as the next input to the model
+            # along with the previous hidden state
+            input_eval = np.expand_dims([predicted_id], 0)
 
-    return (start_string + ''.join(text_generated))
+
+            text_generated.append(index_char[predicted_id])
+
+        return (start_string + ''.join(text_generated))
 
 
 if __name__ == "__main__":
 
-
-    text = inference(temperature=0.5)
+    text = inference(start_string=u"ALEX: ", num_generate=100, temperature=0.5)
     print(text)
 
