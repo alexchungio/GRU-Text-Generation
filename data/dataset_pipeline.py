@@ -78,7 +78,6 @@ def batch_generator(text, char_index, seq_length=100, batch_size=64, buffer_size
         yield  input_data, target_data
 
 
-
 def split_input_target(text_sequence):
     """
 
