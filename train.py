@@ -18,7 +18,7 @@ from tqdm import tqdm
 
 from libs.configs import cfgs
 from libs.nets.model import GRU
-from data.dataset_pipeline import load_parse_data, dataset_batch
+from data.dataset_pipeline import load_parse_data, batch_generator
 
 
 if __name__ == "__main__":
@@ -49,12 +49,12 @@ if __name__ == "__main__":
     # load dataset
     text, vocab, char_index, index_char = load_parse_data(cfgs.DATASET_PATH)
 
-    examples_per_epoch = len(text)
+    examples_per_epoch = int(len(text) / cfgs.SEQUENCE_LENGTH)
 
-    dataset = dataset_batch(text, char_index=char_index, seq_length=cfgs.SEQUENCE_LENGTH, batch_size=cfgs.BATCH_SIZE)
+    train_generate = batch_generator(text, char_index, seq_length=100, batch_size=64)
 
     # ---------------------------------construct network----------------------
-    model = GRU(vocab_size=len(vocab), embedding_size=cfgs.EMBEDDING_DIM, num_units=cfgs.NUM_UNITS)
+    model = GRU(vocab_size=len(vocab), embedding_dim=cfgs.EMBEDDING_DIM, num_units=cfgs.NUM_UNITS)
     # print(model.summary())
 
     # predict
@@ -107,15 +107,13 @@ if __name__ == "__main__":
 
         train_step_per_epoch = examples_per_epoch // cfgs.BATCH_SIZE
 
-        # generate batch
-        train_data_batch, train_label_batch = dataset.get_next()
-
         # use k folder validation
         for epoch in range(cfgs.NUM_EPOCH):
             train_bar = tqdm(range(1, train_step_per_epoch + 1))
             train_loss = []
             for step in train_bar:
-                x_train, y_train = sess.run([train_data_batch, train_label_batch])
+                # generate batch
+                x_train, y_train = next(train_generate)
                 feed_dict = model.fill_feed_dict(x_train, y_train, keep_prob=cfgs.KEEP_PROB)
                 summary, global_step, loss, _ = sess.run(
                     [summary_op, model.global_step, model.loss, model.train],
@@ -126,7 +124,7 @@ if __name__ == "__main__":
                     write.flush()
 
                 train_bar.set_description("Epoch {0} : Step {1} => Train Loss: {2:.4f} ".
-                                          format(epoch + 1, step, train_loss))
+                                          format(epoch + 1, step, loss))
 
             # save model
             ckpt_file = os.path.join(cfgs.TRAINED_CKPT, 'model_loss={0:4f}.ckpt'.format(sum(train_loss) / len(train_loss)))
