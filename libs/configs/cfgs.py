@@ -70,7 +70,6 @@ DATASET_PATH = os.path.join(ROOT_PATH, 'data', 'shakespeare.txt')
 
 #------------------------network config--------------------------------
 BATCH_SIZE = 64
-
 SEQUENCE_LENGTH = 100 # the number in singe time dimension of a single sequence of input data
 VOCAB_SIZE = 26
 EMBEDDING_DIM = 256

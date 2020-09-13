@@ -45,7 +45,6 @@ def load_parse_data(path):
     # -----------------------download dataset------------------------------------
     file_path = tf.keras.utils.get_file(path,
                                         origin='https://storage.googleapis.com/download.tensorflow.org/data/shakespeare.txt')
-
     # ----------------------read and decode data------------------------------------
     with open(file_path, 'rb') as f:
         text = f.read().decode(encoding='utf-8')
