@@ -15,10 +15,10 @@ from libs.configs import cfgs
 
 
 class GRU(object):
-    def __init__(self, vocab_size, embedding_size, num_units, batch_size=64):
+    def __init__(self, vocab_size, embedding_dim, num_units, batch_size=64):
 
         self.vocab_size = vocab_size
-        self.embedded_size = embedding_size
+        self.embedding_dim = embedding_dim
         self.num_units = num_units
         self.batch_size = batch_size
         # assert num_layers == len(num_units), "the number of units must equal to number layers"
@@ -40,7 +40,7 @@ class GRU(object):
     def build_gru(self):
 
         # embedding layer
-        self.encode_outputs = tf.nn.embedding_lookup(tf.Variable(tf.random.uniform([self.vocab_size, self.embedded_size], -1, 1),
+        self.encode_outputs = tf.nn.embedding_lookup(tf.Variable(tf.random.uniform([self.vocab_size, self.embedding_dim], -1, 1),
                                                                  name="embedding"),
                                                        ids=self.input_data)
         # multi lstm cell
