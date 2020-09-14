@@ -15,12 +15,13 @@ from libs.configs import cfgs
 
 
 class GRU(object):
-    def __init__(self, vocab_size, embedding_dim, num_units, batch_size=64):
+    def __init__(self, vocab_size, embedding_dim, num_units, max_grad_norm=5, batch_size=64):
 
         self.vocab_size = vocab_size
         self.embedding_dim = embedding_dim
         self.num_units = num_units
         self.batch_size = batch_size
+        self.max_grad_norm = max_grad_norm
         # assert num_layers == len(num_units), "the number of units must equal to number layers"
 
         self.global_step = tf.train.get_or_create_global_step()
@@ -52,7 +53,7 @@ class GRU(object):
         self.initial_satate = gru_cells.zero_state(self.batch_size, dtype=tf.float32)
 
         self.gru_outputs, self.gru_states = tf.nn.dynamic_rnn(cell=gru_cells, inputs=self.encode_outputs, dtype=tf.float32,
-                                                      scope="gru")
+                                                             scope="gru")
 
         self.logits = self.dense(inputs=self.gru_outputs, output_size=self.vocab_size)
         self.predict = tf.nn.softmax(self.logits, axis=-1, name="predict")
@@ -86,11 +87,20 @@ class GRU(object):
             return loss
 
 
-    def training(self):
-            global_step_update = tf.assign_add(self.global_step, 1)
-            with tf.control_dependencies([global_step_update]):
-                return tf.train.AdamOptimizer(learning_rate=cfgs.LEARNING_RATE).minimize(self.loss)
+    def build_optimizer(self):
 
+        pass
+
+    def training(self):
+
+        global_step_update = tf.assign_add(self.global_step, 1)
+        with tf.control_dependencies([global_step_update]):
+            # use clipping gradient to forbid gradient explosion
+            train_variable = tf.trainable_variables()
+            grads, _ = tf.clip_by_global_norm(tf.gradients(self.loss, train_variable), clip_norm=self.max_grad_norm)
+            train_op = tf.train.AdamOptimizer(learning_rate=cfgs.LEARNING_RATE)
+
+            return train_op.apply_gradients(zip(grads, train_variable))
 
     def get_gru_cell(self, num_units=128, keep_prob=1.0, activation='tanh'):
         """
