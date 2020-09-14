@@ -62,7 +62,7 @@ def inference(start_string, temperature=1.0, num_generate=1000):
             feed_dict = {model.input_data: input_eval,
                          model.initial_satate: new_states,
                          model.keep_prob: 1.0}
-            predictions, new_states = sess.run([model.predict, model.gru_states], feed_dict=feed_dict)
+            predictions, new_states = sess.run([model.logits, model.gru_states], feed_dict=feed_dict)
             # remove the batch dimension
             predictions = tf.squeeze(predictions, 0)
 
