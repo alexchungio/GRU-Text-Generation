@@ -53,14 +53,16 @@ def inference(start_string, temperature=1.0, num_generate=1000):
         saver = tf.train.Saver(var_list=tf.trainable_variables())
         saver.restore(sess, latest_ckpt)
         print('Successful load weights from {}'.format(latest_ckpt))
+        new_states = sess.run(model.initial_satate)
         # Here batch size == 1
         for i in range(num_generate):
 
             # feed_dict = model.fill_feed_dict(input_data=input_eval,
             #                                  keep_prob=1.0)\
             feed_dict = {model.input_data: input_eval,
+                         model.initial_satate: new_states,
                          model.keep_prob: 1.0}
-            predictions = sess.run(model.predict, feed_dict=feed_dict)
+            predictions, new_states = sess.run([model.predict, model.gru_states], feed_dict=feed_dict)
             # remove the batch dimension
             predictions = tf.squeeze(predictions, 0)
 
@@ -70,8 +72,7 @@ def inference(start_string, temperature=1.0, num_generate=1000):
 
             # We pass the predicted character as the next input to the model
             # along with the previous hidden state
-            input_eval = np.expand_dims([predicted_id], 0)
-
+            input_eval = np.expand_dims([predicted_id],axis=0)
 
             text_generated.append(index_char[predicted_id])
 
@@ -80,6 +81,6 @@ def inference(start_string, temperature=1.0, num_generate=1000):
 
 if __name__ == "__main__":
 
-    text = inference(start_string=u"ALEX: ", num_generate=100, temperature=0.5)
+    text = inference(start_string=u"ROMEO: ", num_generate=100, temperature=0.5)
     print(text)
 

@@ -51,17 +51,18 @@ class GRU(object):
 
         self.initial_satate = gru_cells.zero_state(self.batch_size, dtype=tf.float32)
 
-        gru_outputs, gru_states = tf.nn.dynamic_rnn(cell=gru_cells, inputs=self.encode_outputs, dtype=tf.float32,
+        self.gru_outputs, self.gru_states = tf.nn.dynamic_rnn(cell=gru_cells, inputs=self.encode_outputs, dtype=tf.float32,
                                                       scope="gru")
 
-        self.logits = self.dense(inputs=gru_outputs, output_size=self.vocab_size)
+        self.logits = self.dense(inputs=self.gru_outputs, output_size=self.vocab_size)
         self.predict = tf.nn.softmax(self.logits, axis=-1, name="predict")
 
-    def fill_feed_dict(self, input_data, input_target=None,  keep_prob=1.0):
+    def fill_feed_dict(self, input_data, input_target=None, state=None, keep_prob=1.0):
 
         feed_dict = {
             self.input_data: input_data,
             self.input_target: input_target,
+            self.initial_satate: state,
             self.keep_prob: keep_prob
         }
         return feed_dict

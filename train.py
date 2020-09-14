@@ -95,7 +95,7 @@ if __name__ == "__main__":
         sess.run(init_op)
 
         # get model variable of network
-        model_variable = tf.model_variables()
+        model_variable = tf.global_variables()
         for var in model_variable:
             print(var.op.name, var.shape)
 
@@ -111,13 +111,13 @@ if __name__ == "__main__":
         for epoch in range(cfgs.NUM_EPOCH):
             train_bar = tqdm(range(1, train_step_per_epoch + 1))
             train_loss = []
+            new_states = sess.run(model.initial_satate)
             for step in train_bar:
                 # generate batch
                 x_train, y_train = next(train_generate)
-                feed_dict = model.fill_feed_dict(x_train, y_train, keep_prob=cfgs.KEEP_PROB)
-                summary, global_step, loss, _ = sess.run(
-                    [summary_op, model.global_step, model.loss, model.train],
-                    feed_dict=feed_dict)
+                feed_dict = model.fill_feed_dict(x_train, y_train, state=new_states, keep_prob=cfgs.KEEP_PROB)
+                summary, global_step, loss, new_states, _ = sess.run(
+                    [summary_op, model.global_step, model.loss, model.gru_states, model.train], feed_dict=feed_dict)
                 train_loss.append(loss)
                 if step % cfgs.SMRY_ITER == 0:
                     write.add_summary(summary=summary, global_step=global_step)
