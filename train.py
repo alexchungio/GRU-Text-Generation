@@ -115,9 +115,11 @@ if __name__ == "__main__":
             for step in train_bar:
                 # generate batch
                 x_train, y_train = next(train_generate)
+
                 feed_dict = model.fill_feed_dict(x_train, y_train, state=new_states, keep_prob=cfgs.KEEP_PROB)
-                summary, global_step, loss, new_states, _ = sess.run(
-                    [summary_op, model.global_step, model.loss, model.gru_states, model.train], feed_dict=feed_dict)
+                summary, global_step, loss, new_states, _, predict = sess.run(
+                    [summary_op, model.global_step, model.loss, model.gru_states, model.train, model.logits], feed_dict=feed_dict)
+
                 train_loss.append(loss)
                 if step % cfgs.SMRY_ITER == 0:
                     write.add_summary(summary=summary, global_step=global_step)

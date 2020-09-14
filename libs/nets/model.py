@@ -23,7 +23,6 @@ class GRU(object):
         self.batch_size = batch_size
         self.max_grad_norm = max_grad_norm
         # assert num_layers == len(num_units), "the number of units must equal to number layers"
-
         self.global_step = tf.train.get_or_create_global_step()
         self.build_inputs()
         self.build_gru()
@@ -58,6 +57,7 @@ class GRU(object):
         self.logits = self.dense(inputs=self.gru_outputs, output_size=self.vocab_size)
         self.predict = tf.nn.softmax(self.logits, axis=-1, name="predict")
 
+
     def fill_feed_dict(self, input_data, input_target=None, state=None, keep_prob=1.0):
 
         feed_dict = {
@@ -79,9 +79,13 @@ class GRU(object):
 
     def losses(self):
         with tf.variable_scope("loss"):
-            cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits,
-                                                                    labels=self.input_target,
+            target = tf.one_hot(self.input_target, depth=self.vocab_size)
+            cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits,
+                                                                    labels=target,
                                                                     name='entropy')
+            cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits,
+                                                                           labels=self.input_target,
+                                                                           name='entropy')
             loss = tf.reduce_mean(input_tensor=cross_entropy, name='entropy_mean')
             tf.summary.scalar("loss", loss)
             return loss

@@ -85,13 +85,10 @@ def split_input_target(text_sequence):
     :param seq_index:
     :return:
     """
-
     input_sequence = text_sequence[:-1]
     target_sequence = text_sequence[1:]
 
     return input_sequence, target_sequence
-
-
 
 
 def load_parse_data(path):

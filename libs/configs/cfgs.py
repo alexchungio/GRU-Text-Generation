@@ -76,14 +76,14 @@ VOCAB_SIZE = 26
 EMBEDDING_DIM = 256
 
 # NUM_UNITS = [128, 64, 32]
-NUM_UNITS = [1024, 512]
-NUM_LAYERS = 2
+NUM_UNITS = [1024]
+NUM_LAYERS = 1
 
 #-------------------------train config-------------------------------
 EMBEDDING_TRANSFER = False
-LEARNING_RATE = 0.01
-NUM_EPOCH = 30
-KEEP_PROB = 0.8
+LEARNING_RATE = 0.001
+NUM_EPOCH = 20
+KEEP_PROB = 1.0
 
 # data
 SPLIT_RATIO = 0.2
